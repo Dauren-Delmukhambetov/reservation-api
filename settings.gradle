@@ -1,0 +1,4 @@
+rootProject.name = 'reservation-api'
+include 'create-reservation'
+include 'read-reservation'
+
