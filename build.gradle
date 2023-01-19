@@ -1,0 +1,52 @@
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    group 'api.reservation'
+    version '0.1.0'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    task buildZip(type: Zip) {
+        from compileJava
+        from processResources
+        into('lib') {
+            from configurations.runtimeClasspath
+        }
+    }
+
+    jacocoTestReport {
+        dependsOn test
+        reports {
+            xml.enabled true
+        }
+    }
+
+    jacocoTestCoverageVerification {
+        dependsOn check
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.85
+                }
+            }
+        }
+    }
+
+    check {
+        dependsOn test
+        finalizedBy jacocoTestCoverageVerification
+    }
+}
