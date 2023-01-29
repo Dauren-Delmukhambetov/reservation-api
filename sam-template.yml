@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Parameters:
+  Stage:
+    Description: Environment to deploy app, default is dev.
+    Type: String
+    Default: development
+    AllowedValues:
+      - 'development'
+      - 'production'
+
+Resources:
+  ReservationApi:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      StageName: !Ref Stage
+      Models:
+        CreateReservationRequest:
+          type: object
+          required:
+            - serviceCode
+            - craftsmanUsername
+            - customer
+            - startTime
+          properties:
+            serviceCode:
+              type: string
+            craftsmanUsername:
+              type: string
+            customer:
+              type: object
+              required:
+                - name
+              properties:
+                - name
+                - phone
+                - email
+            startTime:
+              type: string
+  CreateReservationFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      AutoPublishAlias: !Ref Stage
+      Runtime: java11
+      Handler: api.reservation.handler.ReservationCreationHandler::handleRequest
+      MemorySize: 2048
+      Timeout: 300
+      CodeUri: create-reservation/build/distributions/create-reservation-0.1.0.zip
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Events:
+        ReservationApiEvent:
+          Type: Api
+          Properties:
+            Path: /reservations
+            Method: post
+            RequestModel:
+              Model: CreateReservationRequest
+              Required: true
+            RestApiId:
+              Ref: ReservationApi
+
+Outputs:
+  ApiUrl:
+    Description: Deployed API URL address
+    Value: !Sub "https://${ReservationApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"

@@ -12,3 +12,12 @@ jobs:
     name: Build and test
     uses: ./.github/workflows/build.yml
     secrets: inherit
+
+  deploy:
+    name: Deploy
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment-name: ${{ github.ref == 'refs/heads/master' && 'production' ||  'development' }}
+      aws-region: us-east-1
+    secrets: inherit
+    needs: build
