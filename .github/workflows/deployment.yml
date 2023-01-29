@@ -1,0 +1,74 @@
+
+## This is reusable workflow to deploy app to the environment
+
+name: Deployment
+
+on:
+  workflow_call:
+
+    inputs:
+      environment-name:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy app to AWS
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment-name }}
+      url: ${{ steps.save-api-url.outputs.api_url }}
+
+    steps:
+      # Configuring AWS CLI
+      - name: Display AWS CLI version
+        run: aws --version
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ inputs.aws-region }}
+
+      # Packaging the app
+      - name: Check out the current branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build zip
+        id: build-zip
+        run: ./gradlew buildZip --info
+      - name: Get app version
+        id: get-app-version
+        run: |
+          version="$(./gradlew version -q)"
+          echo "APP_VERSION=$version" >> $GITHUB_ENV
+
+      # Deploying the app to AWS
+      - name: Package serverless app
+        run: |
+          aws cloudformation package \
+              --template-file sam-template.yml \
+              --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
+              --s3-prefix $APP_VERSION \
+              --output-template-file out.yml
+
+      - name: Deploy serverless app
+        run: |
+          aws cloudformation deploy \
+              --template-file out.yml \
+              --stack-name ${{ vars.APP_NAME }}${{ vars.STACK_SUFFIX }} \
+              --parameter-overrides Stage=${{ vars.STAGE_NAME }} \
+              --capabilities CAPABILITY_IAM
+
+      - name: Save environment URL
+        id: save-api-url
+        run: |
+          apiUrl="$(aws cloudformation describe-stacks \
+              --stack-name ${{ vars.APP_NAME }}${{ vars.STACK_SUFFIX }} \
+              --query "Stacks[].Outputs[?OutputKey=='ApiUrl'].OutputValue"  \
+              --output text)"
+          echo "api_url=$apiUrl" >> $GITHUB_OUTPUT

@@ -1,10 +1,12 @@
 
+allprojects {
+    group 'api.reservation'
+    version '0.1.0'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
-
-    group 'api.reservation'
-    version '0.1.0'
 
     repositories {
         mavenCentral()
@@ -55,4 +57,8 @@ subprojects {
         dependsOn test
         finalizedBy jacocoTestCoverageVerification
     }
+}
+
+tasks.register('version') {
+    println project.version
 }
