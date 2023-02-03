@@ -26,7 +26,7 @@ jobs:
         run: |
           postman collection run "545059-2c582470-9517-4b76-b4fd-5e4471d484ca" \
             --integration-id "132187-${{ github.run_id }}" \
-            --env-var "baseUrl=${{ inputs.api-url }}"
+            --env-var "baseUrl=${{ inputs.api-url }}" \
             --verbose
           # Lint your API using Postman CLI
           postman api lint --integration-id 132187
