@@ -13,6 +13,10 @@ on:
       aws-region:
         required: true
         type: string
+    outputs:
+      api-url:
+        description: "URL of newly deployed API"
+        value: ${{ jobs.deploy.outputs.apiUrl }}
 
 jobs:
   deploy:
@@ -21,6 +25,8 @@ jobs:
     environment:
       name: ${{ inputs.environment-name }}
       url: ${{ steps.save-api-url.outputs.api_url }}
+    outputs:
+      apiUrl: ${{ steps.save-api-url.outputs.api_url }}
 
     steps:
       # Configuring AWS CLI

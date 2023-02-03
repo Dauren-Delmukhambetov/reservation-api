@@ -28,5 +28,6 @@ jobs:
     uses: ./.github/workflows/api-tests.yml
     with:
       environment-name: ${{ github.ref_name == 'master' && 'production' ||  'development' }}
+      api-url: ${{ needs.deploy.outputs.api-url }}
     secrets: inherit
     needs: deploy
