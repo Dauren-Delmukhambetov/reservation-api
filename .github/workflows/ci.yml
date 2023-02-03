@@ -22,3 +22,11 @@ jobs:
       aws-region: us-east-1
     secrets: inherit
     needs: build
+
+  test-api:
+    name: Automated API tests
+    uses: ./.github/workflows/api-tests.yml
+    with:
+      environment-name: ${{ github.ref_name == 'master' && 'production' ||  'development' }}
+    secrets: inherit
+    needs: deploy
