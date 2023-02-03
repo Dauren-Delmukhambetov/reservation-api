@@ -16,7 +16,7 @@ jobs:
   deploy:
     name: Deploy
     uses: ./.github/workflows/deployment.yml
-    if: ${{ github.ref_name == 'master' ||  startsWith(github.ref_name, 'feature') }}
+    if: ${{ github.ref_name == 'master' || startsWith(github.head_ref, 'feature/') }}
     with:
       environment-name: ${{ github.ref_name == 'master' && 'production' ||  'development' }}
       aws-region: us-east-1
@@ -28,5 +28,6 @@ jobs:
     uses: ./.github/workflows/api-tests.yml
     with:
       environment-name: ${{ github.ref_name == 'master' && 'production' ||  'development' }}
+      api-url: ${{ needs.deploy.outputs.api-url }}
     secrets: inherit
     needs: deploy

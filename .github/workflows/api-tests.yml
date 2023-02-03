@@ -7,6 +7,9 @@ on:
       environment-name:
         required: true
         type: string
+      api-url:
+        required: true
+        type: string
 
 jobs:
   automated-api-tests:
@@ -21,6 +24,9 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Run API tests
         run: |
-          postman collection run "${{ github.workspace }}/postman/collections/Reservations.json" -e "545059-12d53539-7fef-47bd-a67b-3930310e69e2" --integration-id "132187-${{ github.run_id }}"
+          postman collection run "545059-2c582470-9517-4b76-b4fd-5e4471d484ca" \
+            --integration-id "132187-${{ github.run_id }}" \
+            --env-var "baseUrl=${{ inputs.api-url }}" \
+            --verbose
           # Lint your API using Postman CLI
           postman api lint --integration-id 132187
