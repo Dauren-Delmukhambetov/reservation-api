@@ -32,4 +32,4 @@ jobs:
       - name: Build and test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-        run: echo ${{ github.head_ref }} && ./gradlew build --info
+        run: ./gradlew build --info

@@ -16,7 +16,7 @@ jobs:
   deploy:
     name: Deploy
     uses: ./.github/workflows/deployment.yml
-    if: ${{ github.ref_name == 'master' || startsWith(github.head_ref, 'refs/heads/feature') }}
+    if: ${{ github.ref_name == 'master' || startsWith(github.head_ref, 'feature/') }}
     with:
       environment-name: ${{ github.ref_name == 'master' && 'production' ||  'development' }}
       aws-region: us-east-1
