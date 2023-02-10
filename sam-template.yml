@@ -10,6 +10,7 @@ Parameters:
       - 'production'
 
 Resources:
+
   ReservationApi:
     Type: 'AWS::Serverless::Api'
     Properties:
@@ -37,6 +38,47 @@ Resources:
                 - email
             startTime:
               type: string
+
+    # ---- Tables ----
+    ReservationTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: !Sub "${AWS::StackName}-reservation-table"
+        AttributeDefinitions:
+          - AttributeName: "ReservationId"
+            AttributeType: "S"
+          - AttributeName: "StartTime"
+            AttributeType: "S"
+          - AttributeName: "TenantId"
+            AttributeType: "S"
+          - AttributeName: "UserId"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "ReservationId"
+            KeyType: "HASH"
+          - AttributeName: "StartTime"
+            KeyType: "RANGE"
+
+        GlobalSecondaryIndexes:
+          - IndexName: !Sub "${AWS::StackName}-reservation-owner-gsi"
+            KeySchema:
+              - AttributeName: "TenantId"
+                KeyType: "HASH"
+              - AttributeName: "UserId"
+                KeyType: "RANGE"
+            Projection:
+              NonKeyAttributes:
+                - "ReservationId"
+              ProjectionType: "INCLUDE"
+            ProvisionedThroughput:
+              ReadCapacityUnits: "3"
+              WriteCapacityUnits: "3"
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: "3"
+          WriteCapacityUnits: "3"
+
+  # Functions
   CreateReservationFunction:
     Type: 'AWS::Serverless::Function'
     Properties:
@@ -48,6 +90,12 @@ Resources:
       CodeUri: create-reservation/build/distributions/create-reservation-0.1.0.zip
       SnapStart:
         ApplyOn: PublishedVersions
+      Environment:
+        Variables:
+          RESERVATION_TABLE_NAME: !Ref ReservationTable
+      Policies:
+          - DynamoDBCrudPolicy:
+              TableName: !Ref ReservationTable
       Events:
         ReservationApiEvent:
           Type: Api
