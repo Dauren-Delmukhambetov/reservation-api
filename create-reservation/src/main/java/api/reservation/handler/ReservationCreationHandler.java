@@ -4,7 +4,6 @@ import api.reservation.exception.ClientException;
 import api.reservation.mapper.ReservationMapper;
 import api.reservation.model.CreateReservationRequest;
 import api.reservation.model.Reservation;
-import api.reservation.repository.ReservationRepository;
 import api.reservation.util.ValidationUtils;
 import com.amazonaws.services.lambda.runtime.Context;
 import jakarta.validation.Validation;
@@ -19,9 +18,7 @@ public class ReservationCreationHandler extends ApiGatewayEventHandler<CreateRes
     @Override
     protected Reservation doHandleRequest(CreateReservationRequest input, Context context) {
         validate(input);
-        final var reservation =  mapper.toReservation(input);
-        repository.save(reservation);
-        return reservation;
+        return mapper.toReservation(input);
     }
 
     private void validate(CreateReservationRequest request) {
@@ -34,5 +31,4 @@ public class ReservationCreationHandler extends ApiGatewayEventHandler<CreateRes
 
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final ReservationMapper mapper = ReservationMapper.getInstance();
-    private static final ReservationRepository repository = ReservationRepository.getInstance();
 }
